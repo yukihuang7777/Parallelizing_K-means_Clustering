@@ -11,6 +11,7 @@ cd "$PBS_O_WORKDIR" || exit 1
 module load mpich/ge/gcc/64/4.1.1 || exit 1
 export FI_PROVIDER=tcp
 export OMP_NUM_THREADS=1
+mpicxx -O3 -std=c++17 mpi_kmeans.cpp -o mpi_kmeans_strong || exit 1
 
 N=8000000
 D=8
@@ -29,7 +30,7 @@ do
     do
         echo "Strong scaling: ranks=$P, repeat=$repeat"
 
-        mpirun -np "$P" ./mpi_kmeans "$N" "$D" "$K" "$SEED" "$ITER" "$TOL" > strong_result.tmp || exit 1
+        mpirun -np "$P" ./mpi_kmeans_strong "$N" "$D" "$K" "$SEED" "$ITER" "$TOL" > strong_result.tmp || exit 1
 
         awk -v r="$repeat" '/^[0-9]+,[0-9]+,/ {print r "," $0}' strong_result.tmp >> "$OUTPUT"
     done

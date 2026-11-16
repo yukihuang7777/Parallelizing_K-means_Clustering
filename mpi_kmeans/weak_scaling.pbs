@@ -11,6 +11,7 @@ cd "$PBS_O_WORKDIR" || exit 1
 module load mpich/ge/gcc/64/4.1.1 || exit 1
 export FI_PROVIDER=tcp
 export OMP_NUM_THREADS=1
+mpicxx -O3 -std=c++17 mpi_kmeans.cpp -o mpi_kmeans_weak || exit 1
 
 N_PER_RANK=50000
 D=8
@@ -32,7 +33,7 @@ do
     do
         echo "Weak scaling: P=$P, N=$N, repeat=$repeat"
 
-        mpirun -np "$P" ./mpi_kmeans \
+        mpirun -np "$P" ./mpi_kmeans_weak \
             "$N" "$D" "$K" "$SEED" "$ITER" "$TOL" \
             > weak_result.tmp || exit 1
 
