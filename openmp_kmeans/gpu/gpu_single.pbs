@@ -1,0 +1,61 @@
+#!/bin/bash
+#PBS -S /bin/bash
+#PBS -N km_gpu_single
+#PBS -P personal-hyou07
+#PBS -j oe
+#PBS -k n
+#PBS -r n
+#PBS -l walltime=01:00:00
+#PBS -l select=1:ncpus=1:mpiprocs=1:ompthreads=1:ngpus=1:mem=8gb
+# GPU queue / GPU resource name must match your Vanda account's current template.
+# Override the project and, if required, GPU queue via qsub -P ... -q ...
+set -Eeuo pipefail
+echo "SCRIPT_STARTED $(date -Is) host=$(hostname) job=$PBS_JOBID"
+cd "${PBS_O_WORKDIR:?Submit from openmp_kmeans/gpu}"
+mkdir -p results
+RUN_DIR="$PWD/results/km_gpu_single_${PBS_JOBID}"
+mkdir -p "$RUN_DIR"
+echo "Detailed log: $RUN_DIR/job.log"
+exec > >(tee -a "$RUN_DIR/job.log") 2>&1
+trap 'rc=$?; echo "JOB_EXIT code=$rc time=$(date -Is)"' EXIT
+trap 'rc=$?; echo "FAILED line=$LINENO command=$BASH_COMMAND code=$rc"' ERR
+echo "STAGE 1: single-host allocation"
+if [ -n "${PBS_NODEFILE:-}" ]; then
+    sort "$PBS_NODEFILE" | uniq -c
+    nodes=$(sort -u "$PBS_NODEFILE" | wc -l)
+    if [ "$nodes" -ne 1 ]; then
+        echo "Expected exactly one physical host, got $nodes"
+        exit 1
+    fi
+fi
+qstat -f "$PBS_JOBID" > "$RUN_DIR/allocation.txt" 2>&1 || true
+echo "STAGE 2: NVIDIA compiler and GPU visibility"
+module load nvhpc-hpcx-cuda12/26.1
+export OMP_NUM_THREADS=1 OMP_DYNAMIC=FALSE OMP_TARGET_OFFLOAD=MANDATORY
+export OMP_PLACES=cores OMP_PROC_BIND=close
+export OMP_DEFAULT_DEVICE=0
+export KMEANS_RUN_TIMEOUT=600
+{
+    date -Is
+    hostname
+    module list
+    nvc++ --version
+    python3 --version
+    printf 'CUDA_VISIBLE_DEVICES=%s\n' "${CUDA_VISIBLE_DEVICES:-unset}"
+    lscpu
+    nvidia-smi
+} > "$RUN_DIR/environment.txt" 2>&1
+cat "$RUN_DIR/environment.txt"
+echo "STAGE 3: compile on the allocated GPU host"
+bash build_gpu.sh
+echo "STAGE 4: actual offload and cross-version correctness"
+./bin/validate_gpu --gpu
+python3 ../compare.py gpu --output "$RUN_DIR/validation.json"
+echo "GPU_VALIDATION_PASS"
+if [ "${KMEANS_VALIDATE_ONLY:-0}" = 1 ]; then
+    echo "Validation-only job finished; no performance experiments requested"
+    exit 0
+fi
+echo "STAGE 5: serial, CPU pipeline and single-GPU benchmarks"
+python3 ../benchmark.py gpu --output "$RUN_DIR/gpu.csv"
+echo "ALL_GPU_BENCHMARKS_FINISHED results=$RUN_DIR"

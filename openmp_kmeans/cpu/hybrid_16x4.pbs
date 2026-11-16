@@ -1,0 +1,24 @@
+#!/bin/bash
+#PBS -N km_16x4
+#PBS -P personal-hyou07
+#PBS -j oe
+#PBS -l walltime=01:00:00
+#PBS -l select=2:ncpus=32:mpiprocs=8:ompthreads=4:mem=8gb
+#PBS -l place=scatter
+# Default project: personal-hyou07. Override with qsub -P PROJECT if needed.
+set -euo pipefail
+cd "$PBS_O_WORKDIR"
+module load mpich/ge/gcc/64/4.1.1
+export FI_PROVIDER=tcp
+export OMP_NUM_THREADS=4 OMP_DYNAMIC=FALSE OMP_PLACES=cores OMP_PROC_BIND=close
+export RANKS_PER_NODE=8
+mkdir -p results
+{
+    date -Is
+    module list
+    mpicxx -show
+    sort "$PBS_NODEFILE" | uniq -c
+    mpirun -np 16 -ppn 8 -bind-to core:4 -map-by core:4 sh -c 'hostname; taskset -pc $$'
+} > "results/environment_${PBS_JOBID}.txt" 2>&1
+# Compile once with build_cpu.sh before submitting these three jobs.
+python3 ../benchmark.py hybrid --ranks 16 --threads 4 --output "results/hybrid_16x4_${PBS_JOBID}.csv"

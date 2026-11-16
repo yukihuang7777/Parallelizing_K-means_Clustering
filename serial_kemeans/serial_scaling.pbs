@@ -1,0 +1,31 @@
+#!/bin/bash
+#PBS -N km_serial_scale
+#PBS -P personal-hyou07
+#PBS -j oe
+#PBS -l walltime=01:00:00
+#PBS -l select=1:ncpus=1:mpiprocs=1:ompthreads=1:mem=8gb
+# Default project: personal-hyou07. Override with qsub -P PROJECT if needed.
+set -euo pipefail
+cd "$PBS_O_WORKDIR"
+module load mpich/ge/gcc/64/4.1.1
+export OMP_NUM_THREADS=1 OMP_DYNAMIC=FALSE
+mkdir -p results
+mpicxx -O3 -std=c++17 serial.cpp -o serial
+mpicxx -O3 -std=c++17 validation.cpp -o validation
+./validation
+{
+    date -Is
+    hostname
+    module list
+    mpicxx -show
+    lscpu
+} > "results/environment_${PBS_JOBID}.txt" 2>&1
+OUTPUT="results/serial_50iter_${PBS_JOBID}.csv"
+echo 'repeat,N,K,D,ranks,iterations,time_s,comm_max_s,wcss' > "$OUTPUT"
+for N in 10000 100000 1000000 8000000; do
+    for repeat in 1 2 3 4 5; do
+        row=$(./serial "$N" 8 10 42 50 0)
+        printf '%s\n' "$row" | awk -v r="$repeat" '/^[0-9]+,[0-9]+,/ {print r "," $0}' >> "$OUTPUT"
+    done
+done
+echo "Results saved in $OUTPUT"

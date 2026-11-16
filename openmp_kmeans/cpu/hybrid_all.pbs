@@ -1,0 +1,26 @@
+#!/bin/bash
+#PBS -S /bin/bash
+#PBS -N km_hybrid_all
+#PBS -P personal-hyou07
+#PBS -j oe
+#PBS -k n
+#PBS -r n
+#PBS -l walltime=01:00:00
+#PBS -l select=2:ncpus=32:mpiprocs=32:ompthreads=1:mem=8gb
+#PBS -l place=free
+set -euo pipefail
+echo "SCRIPT_STARTED $(date -Is) host=$(hostname) job=$PBS_JOBID"
+source "${PBS_O_WORKDIR}/job_common.sh"
+echo "STAGE 5: validate actual allocation before timing"
+python3 smoke_cpu.py --output "$RUN_DIR/smoke.json"
+echo "STAGE 6: compare configurations on the same allocation ($KMEANS_HOST_COUNT host(s))"
+# Each rank gets 4, 2, or 1 cores respectively. No concurrent benchmarks.
+# These are separate batches of five repeats, not interleaved repeats.
+for threads in 4 2 1; do
+    ranks=$((64 / threads))
+    export OMP_NUM_THREADS="$threads"
+    export RANKS_PER_NODE=$((ranks / KMEANS_HOST_COUNT))
+    python3 ../benchmark.py hybrid --ranks "$ranks" --threads "$threads" \
+        --output "$RUN_DIR/hybrid_${ranks}x${threads}.csv"
+done
+echo "ALL_BENCHMARKS_FINISHED results=$RUN_DIR"

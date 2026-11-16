@@ -1,0 +1,18 @@
+#!/bin/bash
+#PBS -S /bin/bash
+#PBS -N km_cpu_check
+#PBS -P personal-hyou07
+#PBS -j oe
+#PBS -k n
+#PBS -r n
+#PBS -l walltime=00:15:00
+#PBS -l select=2:ncpus=32:mpiprocs=32:ompthreads=1:mem=8gb
+# Use the queue's default placement to test startup without an explicit request.
+# -k n requests normal spooled output rather than direct-write output.
+# -r n marks this job non-rerunnable; site/startup retry policy can still differ.
+set -euo pipefail
+echo "SCRIPT_STARTED $(date -Is) host=$(hostname) job=$PBS_JOBID"
+source "${PBS_O_WORKDIR}/job_common.sh"
+echo "STAGE 5: bounded binding and correctness checks, small input only"
+python3 smoke_cpu.py --output "$RUN_DIR/smoke.json"
+echo "STARTUP_CHECK_PASS"

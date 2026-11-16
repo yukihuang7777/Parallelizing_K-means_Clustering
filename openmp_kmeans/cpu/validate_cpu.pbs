@@ -1,0 +1,15 @@
+#!/bin/bash
+#PBS -N km_validate_cpu
+#PBS -P personal-hyou07
+#PBS -j oe
+#PBS -l walltime=00:20:00
+#PBS -l select=1:ncpus=16:mpiprocs=4:ompthreads=4:mem=4gb
+set -euo pipefail
+cd "$PBS_O_WORKDIR"
+module load mpich/ge/gcc/64/4.1.1
+export FI_PROVIDER=tcp
+export OMP_DYNAMIC=FALSE OMP_PLACES=cores OMP_PROC_BIND=close
+export MPIEXEC="mpirun -bind-to core:4 -map-by core:4"
+export OMP_NUM_THREADS=4
+bash build_cpu.sh
+python3 ../compare.py hybrid --output "results/validation_cpu_${PBS_JOBID}.json"
