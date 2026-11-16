@@ -19,9 +19,9 @@ SEED=42
 ITER=50
 TOL=0
 
-mkdir -p weak_results
+mkdir -p results
 
-OUTPUT="weak_results/weak_all_${PBS_JOBID}.csv"
+OUTPUT="results/weak_all_${PBS_JOBID}.csv"
 echo "repeat,N,K,D,ranks,iterations,time_s,comm_max_s,wcss" > "$OUTPUT"
 
 for P in 1 2 4 8 16 32 64 128 256

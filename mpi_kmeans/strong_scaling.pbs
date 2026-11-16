@@ -19,8 +19,8 @@ SEED=42
 ITER=50
 TOL=0
 
-mkdir -p strong_results
-OUTPUT="strong_results/strong_all_${PBS_JOBID}.csv"
+mkdir -p results
+OUTPUT="results/strong_all_${PBS_JOBID}.csv"
 echo "repeat,N,K,D,ranks,iterations,time_s,comm_max_s,wcss" > "$OUTPUT"
 
 for P in 1 2 4 8 16 32 64 128 256
