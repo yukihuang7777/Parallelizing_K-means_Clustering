@@ -65,3 +65,37 @@ cd ~/Parallelizing_K-means_Clustering/mpi_kmeans
 qsub -P <YOUR_PROJECT> weak_scaling.pbs
 ```
 Both scripts automatically compile the MPI implementation and run experiments using 1 to 256 MPI ranks, with five repetitions per configuration.
+
+
+### 3. MPI + OpenMP on CPUs
+
+Runs correctness checks and compares pure MPI 64 x 1 with hybrid 64 x 1,
+32 x 2 and 16 x 4 (ranks x threads), with five repetitions each.
+
+```bash
+cd ~/Parallelizing_K-means_Clustering-main/openmp_kmeans/cpu
+qsub -P "$PROJECT" -q auto hybrid_all.pbs
+```
+
+### 4. Single-GPU OpenMP Offload
+
+Offloads nearest-centroid assignment to one GPU; accumulation and center updates
+remain on the CPU. Runs correctness checks and benchmarks serial, CPU pipeline
+and GPU versions, with five repetitions each.
+
+```bash
+cd ~/Parallelizing_K-means_Clustering-main/openmp_kmeans/gpu
+qsub -P "$PROJECT" -q auto gpu_single.pbs
+```
+
+### Check Jobs and Results
+
+```bash
+qstat -u "$USER"
+```
+
+CSV results are saved under each version's `results/` directory. OpenMP CPU and
+GPU runs create job-specific subdirectories there. GPU result rows must show
+`offloaded=1`. Submit each command once; duplicate jobs of the same type can
+conflict through shared build or temporary files.
+
