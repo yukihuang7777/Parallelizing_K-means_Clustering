@@ -1,5 +1,7 @@
 # Parallelizing K-means Clustering
-Parallelizing K-means Clustering with MPI and OpenMP
+This project implements and evaluates K-means clustering using serial C++, MPI, and hybrid MPI + OpenMP parallelization. We compare strong and weak scaling, runtime, and communication overhead on the NUS Vanda HPC cluster, using up to 256 CPU cores. We also evaluate OpenMP GPU offloading for the nearest-centroid assignment step and validate the results against the serial implementation. 
+
+**You can reproduce the experiments by following the instructions below.**
 
 
 ## How to Run
@@ -44,7 +46,7 @@ cd ~/Parallelizing_K-means_Clustering
 
 ```bash
 cd ~/Parallelizing_K-means_Clustering/serial_kmeans
-qsub -P "$PROJECT" serial_scaling.pbs
+qsub -P YOUR_PROJECT serial_scaling.pbs
 ```
 The script automatically compiles the serial implementation and runs the scaling experiments with different dataset sizes.
 
@@ -54,14 +56,14 @@ The script automatically compiles the serial implementation and runs the scaling
 
 ```bash
 cd ~/Parallelizing_K-means_Clustering/mpi_kmeans
-qsub -P "$PROJECT"  strong_scaling.pbs
+qsub -P YOUR_PROJECT strong_scaling.pbs
 ```
 
 **Weak Scaling**
 
 ```bash
 cd ~/Parallelizing_K-means_Clustering/mpi_kmeans
-qsub -P "$PROJECT" weak_scaling.pbs
+qsub -P YOUR_PROJECT weak_scaling.pbs
 ```
 Both scripts automatically compile the MPI implementation and run experiments using 1, 2, 4, 8, 16, 32, 64, 128 and 256 MPI ranks, with five repetitions per configuration.
 
@@ -73,7 +75,7 @@ Compares pure MPI 64 x 1 with hybrid 64 x 1,
 
 ```bash
 cd ~/Parallelizing_K-means_Clustering/openmp_kmeans/cpu
-qsub -P "$PROJECT" hybrid_all.pbs
+qsub -P YOUR_PROJECT hybrid_all.pbs
 ```
 
 ### 4. Single-GPU OpenMP Offload
@@ -84,16 +86,32 @@ and GPU versions, with five repetitions each.
 
 ```bash
 cd ~/Parallelizing_K-means_Clustering/openmp_kmeans/gpu
-qsub -P "$PROJECT" gpu_single.pbs
+qsub -P YOUR_PROJECT gpu_single.pbs
 ```
 
 ### Check Jobs and Results
 
 ```bash
-qstat -u "$USER"
+qstat -u YOUR_USERNAME
 ```
 
-CSV results are saved under each version's `results/` directory. OpenMP CPU and
-GPU runs create job-specific subdirectories there. GPU result rows must show
-`offloaded=1`. Submit each command once; duplicate jobs of the same type can
-conflict through shared build or temporary files.
+CSV results are saved under each version's `results/` directory. You can identify the results of a specific run by matching the Job ID in the CSV filename or its parent folder name.
+- Serial: serial_kmeans/results/
+- MPI: mpi_kmeans/results/
+- MPI + OpenMP CPU: openmp_kmeans/cpu/results/
+- GPU: openmp_kmeans/gpu/results/
+
+OpenMP CPU and GPU runs create job-specific subdirectories there. GPU result rows must show `offloaded=1`. Submit each command once; duplicate jobs of the same type can conflict through shared build or temporary files.
+
+## Download Results
+
+After the PBS jobs finish, open a terminal on your local computer (not Vanda) and run:
+
+```bash
+scp -r YOUR_USERNAME@vanda.nus.edu.sg:~/Parallelizing_K-means_Clustering/serial_kmeans/results/ ./serial_results/
+scp -r YOUR_USERNAME@vanda.nus.edu.sg:~/Parallelizing_K-means_Clustering/mpi_kmeans/results/ ./mpi_results/
+scp -r YOUR_USERNAME@vanda.nus.edu.sg:~/Parallelizing_K-means_Clustering/openmp_kmeans/cpu/results/ ./cpu_results/
+scp -r YOUR_USERNAME@vanda.nus.edu.sg:~/Parallelizing_K-means_Clustering/openmp_kmeans/gpu/results/ ./gpu_results/
+```
+
+Replace `YOUR_USERNAME` with your Vanda username. The downloaded results will be saved in your current local directory. You can also specify a different destination directory if preferred.
