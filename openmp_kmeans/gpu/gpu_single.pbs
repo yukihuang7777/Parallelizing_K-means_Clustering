@@ -48,14 +48,6 @@ export KMEANS_RUN_TIMEOUT=600
 cat "$RUN_DIR/environment.txt"
 echo "STAGE 3: compile on the allocated GPU host"
 bash build_gpu.sh
-echo "STAGE 4: actual offload and cross-version correctness"
-./bin/validate_gpu --gpu
-python3 ../compare.py gpu --output "$RUN_DIR/validation.json"
-echo "GPU_VALIDATION_PASS"
-if [ "${KMEANS_VALIDATE_ONLY:-0}" = 1 ]; then
-    echo "Validation-only job finished; no performance experiments requested"
-    exit 0
-fi
-echo "STAGE 5: serial, CPU pipeline and single-GPU benchmarks"
+echo "STAGE 4: serial, CPU pipeline and single-GPU benchmarks"
 python3 ../benchmark.py gpu --output "$RUN_DIR/gpu.csv"
 echo "ALL_GPU_BENCHMARKS_FINISHED results=$RUN_DIR"

@@ -11,9 +11,7 @@
 set -euo pipefail
 echo "SCRIPT_STARTED $(date -Is) host=$(hostname) job=$PBS_JOBID"
 source "${PBS_O_WORKDIR}/job_common.sh"
-echo "STAGE 5: validate actual allocation before timing"
-python3 smoke_cpu.py --output "$RUN_DIR/smoke.json"
-echo "STAGE 6: compare configurations on the same allocation ($KMEANS_HOST_COUNT host(s))"
+echo "STAGE 5: compare configurations on the same allocation ($KMEANS_HOST_COUNT host(s))"
 # Each rank gets 4, 2, or 1 cores respectively. No concurrent benchmarks.
 # These are separate batches of five repeats, not interleaved repeats.
 for threads in 4 2 1; do

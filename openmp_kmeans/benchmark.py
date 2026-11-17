@@ -4,7 +4,23 @@ import csv
 import os
 from pathlib import Path
 import shlex
-from compare import ROOT, run
+import io
+import subprocess
+
+ROOT = Path(__file__).resolve().parent
+
+def run(command, env=None):
+    timeout = int((env if env is not None else os.environ).get('KMEANS_RUN_TIMEOUT', '600'))
+    p = subprocess.run([str(x) for x in command], cwd=ROOT, env=env,
+                       text=True, capture_output=True, timeout=timeout)
+    if p.returncode:
+        raise RuntimeError(f"Command failed ({p.returncode}): {command}\n{p.stderr}\n{p.stdout}")
+    rows = list(csv.DictReader(io.StringIO(p.stdout)))
+    if len(rows) != 1:
+        raise RuntimeError(f"Expected one CSV result: {p.stdout}")
+    centers = [float(v) for line in p.stderr.splitlines() if line.startswith("Centroid ")
+               for v in line.split(":", 1)[1].split()]
+    return rows[0], centers
 
 def main():
     p = argparse.ArgumentParser()

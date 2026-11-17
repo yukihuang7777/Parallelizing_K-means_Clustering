@@ -97,4 +97,3 @@ CSV results are saved under each version's `results/` directory. OpenMP CPU and
 GPU runs create job-specific subdirectories there. GPU result rows must show
 `offloaded=1`. Submit each command once; duplicate jobs of the same type can
 conflict through shared build or temporary files.
-

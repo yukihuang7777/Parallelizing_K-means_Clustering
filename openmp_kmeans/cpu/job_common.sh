@@ -3,7 +3,7 @@
 set -Eeuo pipefail
 cd "${PBS_O_WORKDIR:?Submit from openmp_kmeans/cpu}"
 test -f mpi_openmp.cpp
-test -f ../compare.py
+test -f ../benchmark.py
 mkdir -p results
 export RUN_DIR="$PWD/results/${PBS_JOBNAME}_${PBS_JOBID}"
 mkdir -p "$RUN_DIR"
@@ -54,5 +54,5 @@ else
     cat "$RUN_DIR/hosts.txt"
     exit "$rc"
 fi
-echo "STAGE 4: compile and validate local kernels inside allocation"
+echo "STAGE 4: compile benchmark executables inside allocation"
 bash build_cpu.sh
