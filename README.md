@@ -40,12 +40,11 @@ ssh YOUR_USERNAME@vanda.nus.edu.sg
 cd ~/Parallelizing_K-means_Clustering
 ```
 
-
 ### 1. Serial K-means
 
 ```bash
 cd ~/Parallelizing_K-means_Clustering/serial_kmeans
-qsub -P <YOUR_PROJECT> serial_scaling.pbs
+qsub -P "$PROJECT" serial_scaling.pbs
 ```
 The script automatically compiles the serial implementation and runs the scaling experiments with different dataset sizes.
 
@@ -55,37 +54,37 @@ The script automatically compiles the serial implementation and runs the scaling
 
 ```bash
 cd ~/Parallelizing_K-means_Clustering/mpi_kmeans
-qsub -P <YOUR_PROJECT> strong_scaling.pbs
+qsub -P "$PROJECT"  strong_scaling.pbs
 ```
 
 **Weak Scaling**
 
 ```bash
 cd ~/Parallelizing_K-means_Clustering/mpi_kmeans
-qsub -P <YOUR_PROJECT> weak_scaling.pbs
+qsub -P "$PROJECT" weak_scaling.pbs
 ```
-Both scripts automatically compile the MPI implementation and run experiments using 1 to 256 MPI ranks, with five repetitions per configuration.
+Both scripts automatically compile the MPI implementation and run experiments using 1, 2, 4, 8, 16, 32, 64, 128 and 256 MPI ranks, with five repetitions per configuration.
 
 
 ### 3. MPI + OpenMP on CPUs
 
-Runs correctness checks and compares pure MPI 64 x 1 with hybrid 64 x 1,
+Compares pure MPI 64 x 1 with hybrid 64 x 1,
 32 x 2 and 16 x 4 (ranks x threads), with five repetitions each.
 
 ```bash
-cd ~/Parallelizing_K-means_Clustering-main/openmp_kmeans/cpu
-qsub -P "$YOUR_PROJECT" hybrid_all.pbs
+cd ~/Parallelizing_K-means_Clustering/openmp_kmeans/cpu
+qsub -P "$PROJECT" hybrid_all.pbs
 ```
 
 ### 4. Single-GPU OpenMP Offload
 
 Offloads nearest-centroid assignment to one GPU; accumulation and center updates
-remain on the CPU. Runs correctness checks and benchmarks serial, CPU pipeline
+remain on the CPU. Benchmarks serial, CPU pipeline
 and GPU versions, with five repetitions each.
 
 ```bash
-cd ~/Parallelizing_K-means_Clustering-main/openmp_kmeans/gpu
-qsub -P "$YOUR_PROJECT" gpu_single.pbs
+cd ~/Parallelizing_K-means_Clustering/openmp_kmeans/gpu
+qsub -P "$PROJECT" gpu_single.pbs
 ```
 
 ### Check Jobs and Results
