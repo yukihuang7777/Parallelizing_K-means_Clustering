@@ -74,7 +74,7 @@ Runs correctness checks and compares pure MPI 64 x 1 with hybrid 64 x 1,
 
 ```bash
 cd ~/Parallelizing_K-means_Clustering-main/openmp_kmeans/cpu
-qsub -P "$PROJECT" -q auto hybrid_all.pbs
+qsub -P "$YOUR_PROJECT" hybrid_all.pbs
 ```
 
 ### 4. Single-GPU OpenMP Offload
@@ -85,7 +85,7 @@ and GPU versions, with five repetitions each.
 
 ```bash
 cd ~/Parallelizing_K-means_Clustering-main/openmp_kmeans/gpu
-qsub -P "$PROJECT" -q auto gpu_single.pbs
+qsub -P "$YOUR_PROJECT" gpu_single.pbs
 ```
 
 ### Check Jobs and Results
